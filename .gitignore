@@ -1,6 +1,5 @@
 # Raw data is not redistributed (no stated license)
-data/*
-!data/README.md
+data/*.csv
 
 # Python / notebooks
 __pycache__/

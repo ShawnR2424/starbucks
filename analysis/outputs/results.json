@@ -30,6 +30,24 @@
       "passed": true
     },
     {
+      "test": "arm_accepted_values",
+      "expected": 0,
+      "got": 0,
+      "passed": true
+    },
+    {
+      "test": "features_in_range",
+      "expected": 0,
+      "got": 0,
+      "passed": true
+    },
+    {
+      "test": "customer_in_one_split",
+      "expected": 0,
+      "got": 0,
+      "passed": true
+    },
+    {
       "test": "splits_present",
       "expected": 2,
       "got": 2,
@@ -89,7 +107,7 @@
       "ci_low": 0.00797101397886954,
       "ci_high": 0.010938081660675864,
       "z": 12.468449461599388,
-      "p_value": 0.0,
+      "p_value": 1.1096419254071562e-35,
       "counts": {
         "promotion_customers": 42364,
         "promotion_purchases": 721,
@@ -116,7 +134,7 @@
       "ci_low": 0.0075420364523916,
       "ci_high": 0.011644280104108616,
       "z": 9.171494332667832,
-      "p_value": 0.0,
+      "p_value": 4.6650662025440825e-20,
       "counts": {
         "promotion_customers": 20748,
         "promotion_purchases": 339,
@@ -184,7 +202,64 @@
         "mean_share_targeted": 0.35496942232134826
       }
     },
-    "chosen_policy": "t_learner_logistic"
+    "chosen_policy": "t_learner_logistic",
+    "rule_cells_by_fold": [
+      [
+        [
+          2,
+          1
+        ],
+        [
+          2,
+          3
+        ]
+      ],
+      [
+        [
+          2,
+          1
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ],
+      [
+        [
+          2,
+          1
+        ],
+        [
+          2,
+          3
+        ]
+      ],
+      [
+        [
+          2,
+          1
+        ],
+        [
+          2,
+          3
+        ]
+      ],
+      [
+        [
+          2,
+          1
+        ],
+        [
+          2,
+          3
+        ]
+      ]
+    ],
+    "rule_cells_stable": false
   },
   "targeting_rule_cells": [
     [
@@ -297,5 +372,176 @@
       "exercise_nir": 428.0
     }
   },
-  "targeting_decision": "target"
+  "targeting_decision": "target",
+  "policy_overlap": {
+    "model_targets_inside_rule": 0.9444702962618272,
+    "rule_targets_covered_by_model": 0.7562565981494132
+  },
+  "excluded_by_rule": {
+    "share": 0.6133733493397359,
+    "irr": 0.0028115261841904233,
+    "irr_ci": [
+      0.0006398133627680555,
+      0.004983239005612791
+    ],
+    "value_per_100k_if_sent": -7476.085007742791
+  },
+  "sensitivity": {
+    "grid": [
+      {
+        "value_per_sale": 10.0,
+        "cost_per_send": 0.1,
+        "rule_per_100k": 4050.4608431515376,
+        "send_all_per_100k": -406.84172174989266
+      },
+      {
+        "value_per_sale": 10.0,
+        "cost_per_send": 0.15,
+        "rule_per_100k": 2117.327589850218,
+        "send_all_per_100k": -5406.841721749892
+      },
+      {
+        "value_per_sale": 10.0,
+        "cost_per_send": 0.2,
+        "rule_per_100k": 184.19433654889684,
+        "send_all_per_100k": -10406.841721749894
+      },
+      {
+        "value_per_sale": 10.0,
+        "cost_per_send": 0.25,
+        "rule_per_100k": -1748.938916752423,
+        "send_all_per_100k": -15406.841721749892
+      },
+      {
+        "value_per_sale": 9.0,
+        "cost_per_send": 0.1,
+        "rule_per_100k": 3258.7881081761197,
+        "send_all_per_100k": -1366.1575495749034
+      },
+      {
+        "value_per_sale": 9.0,
+        "cost_per_send": 0.15,
+        "rule_per_100k": 1325.6548548748,
+        "send_all_per_100k": -6366.157549574902
+      },
+      {
+        "value_per_sale": 9.0,
+        "cost_per_send": 0.2,
+        "rule_per_100k": -607.4783984265209,
+        "send_all_per_100k": -11366.157549574904
+      },
+      {
+        "value_per_sale": 9.0,
+        "cost_per_send": 0.25,
+        "rule_per_100k": -2540.6116517278406,
+        "send_all_per_100k": -16366.157549574902
+      },
+      {
+        "value_per_sale": 8.0,
+        "cost_per_send": 0.1,
+        "rule_per_100k": 2467.1153732007024,
+        "send_all_per_100k": -2325.473377399914
+      },
+      {
+        "value_per_sale": 8.0,
+        "cost_per_send": 0.15,
+        "rule_per_100k": 533.9821198993823,
+        "send_all_per_100k": -7325.473377399913
+      },
+      {
+        "value_per_sale": 8.0,
+        "cost_per_send": 0.2,
+        "rule_per_100k": -1399.1511334019385,
+        "send_all_per_100k": -12325.473377399914
+      },
+      {
+        "value_per_sale": 8.0,
+        "cost_per_send": 0.25,
+        "rule_per_100k": -3332.2843867032584,
+        "send_all_per_100k": -17325.473377399914
+      },
+      {
+        "value_per_sale": 7.0,
+        "cost_per_send": 0.1,
+        "rule_per_100k": 1675.4426382252843,
+        "send_all_per_100k": -3284.789205224925
+      },
+      {
+        "value_per_sale": 7.0,
+        "cost_per_send": 0.15,
+        "rule_per_100k": -257.69061507603544,
+        "send_all_per_100k": -8284.789205224924
+      },
+      {
+        "value_per_sale": 7.0,
+        "cost_per_send": 0.2,
+        "rule_per_100k": -2190.8238683773566,
+        "send_all_per_100k": -13284.789205224926
+      },
+      {
+        "value_per_sale": 7.0,
+        "cost_per_send": 0.25,
+        "rule_per_100k": -4123.957121678676,
+        "send_all_per_100k": -18284.789205224926
+      },
+      {
+        "value_per_sale": 6.0,
+        "cost_per_send": 0.1,
+        "rule_per_100k": 883.7699032498667,
+        "send_all_per_100k": -4244.105033049936
+      },
+      {
+        "value_per_sale": 6.0,
+        "cost_per_send": 0.15,
+        "rule_per_100k": -1049.3633500514532,
+        "send_all_per_100k": -9244.105033049935
+      },
+      {
+        "value_per_sale": 6.0,
+        "cost_per_send": 0.2,
+        "rule_per_100k": -2982.496603352774,
+        "send_all_per_100k": -14244.105033049937
+      },
+      {
+        "value_per_sale": 6.0,
+        "cost_per_send": 0.25,
+        "rule_per_100k": -4915.629856654094,
+        "send_all_per_100k": -19244.105033049935
+      },
+      {
+        "value_per_sale": 5.0,
+        "cost_per_send": 0.1,
+        "rule_per_100k": 92.09716827444842,
+        "send_all_per_100k": -5203.420860874947
+      },
+      {
+        "value_per_sale": 5.0,
+        "cost_per_send": 0.15,
+        "rule_per_100k": -1841.0360850268714,
+        "send_all_per_100k": -10203.420860874945
+      },
+      {
+        "value_per_sale": 5.0,
+        "cost_per_send": 0.2,
+        "rule_per_100k": -3774.169338328192,
+        "send_all_per_100k": -15203.420860874947
+      },
+      {
+        "value_per_sale": 5.0,
+        "cost_per_send": 0.25,
+        "rule_per_100k": -5707.302591629513,
+        "send_all_per_100k": -20203.420860874947
+      }
+    ],
+    "rule_break_even_value_per_sale": 7.3255014397888,
+    "rule_break_even_cost_per_send": 0.20476413967413623,
+    "rule_irr_ci_low_break_even_value_per_sale": 9.123501314428037
+  },
+  "rollout_sizing": {
+    "assumed_irr": 0.020476413967413624,
+    "control_rate": 0.007130563068600934,
+    "treated_rate": 0.027606977036014557,
+    "holdout_share": 0.1,
+    "customers_needed": 20744
+  }
 }

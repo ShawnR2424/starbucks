@@ -144,12 +144,15 @@ def main() -> dict:
     strata = train.treated.astype(int) * 2 + train.purchased
     cv = {k: [] for k in ["send_all", *LEARNERS]}
     cv_share = {k: [] for k in LEARNERS}
+    rule_cells_by_fold = []
     for fit_idx, val_idx in skf.split(train, strata):
         fit, val = train.iloc[fit_idx], train.iloc[val_idx]
         tv, pv = val.treated.values, val.purchased.values
         cv["send_all"].append(st.policy_value(np.ones(len(val), bool), tv, pv, rev, cost))
         for k, learn in LEARNERS.items():
-            pol, _ = learn(fit, break_even)
+            pol, cells = learn(fit, break_even)
+            if k == "segment_rule_v4_v5":
+                rule_cells_by_fold.append([list(map(int, c)) for c in cells])
             tgt = pol(val)
             cv[k].append(st.policy_value(tgt, tv, pv, rev, cost))
             cv_share[k].append(float(tgt.mean()))
@@ -157,7 +160,9 @@ def main() -> dict:
                       "mean_share_targeted": float(np.mean(cv_share[k])) if k in cv_share else 1.0}
                   for k, v in cv.items()}
     chosen = max(LEARNERS, key=lambda k: cv_summary[k]["mean_value_per_customer"])
-    results["targeting_cv"] = {"summary": cv_summary, "chosen_policy": chosen}
+    results["targeting_cv"] = {"summary": cv_summary, "chosen_policy": chosen,
+                               "rule_cells_by_fold": rule_cells_by_fold,
+                               "rule_cells_stable": all(c == rule_cells_by_fold[0] for c in rule_cells_by_fold)}
 
     # Refit every learner on all of training. Only the chosen one is the pre-selected policy;
     # the others are reported on the holdout for transparency, clearly labelled as secondary.
@@ -197,10 +202,63 @@ def main() -> dict:
     meets = ch["value_per_100k_ci"][0] > 0 and ch["vs_send_all_per_100k_ci"][0] > 0
     results["targeting_decision"] = "target" if meets else "inconclusive"
 
-    # Segment table (training) for the memo, straight from the metric layer
-    seg = layer.query(["customers", "incremental_response_rate", "net_value_per_send"], ["v4", "v5"],
-                      "split = 'training'")
-    seg.to_csv(OUT / "segment_lift_training.csv", index=False)
+    # ---- 6. diagnostics that test the recommendation
+    rule_tgt = policies["segment_rule_v4_v5"]
+    rule = hold_eval["segment_rule_v4_v5"]
+
+    # 6a. Overlap between the pre-selected model and the rule
+    model_tgt = policies[chosen]
+    results["policy_overlap"] = {
+        "model_targets_inside_rule": float((model_tgt & rule_tgt).sum() / model_tgt.sum()),
+        "rule_targets_covered_by_model": float((model_tgt & rule_tgt).sum() / rule_tgt.sum()),
+    }
+
+    # 6b. The customers the rule leaves out: does excluding them cost anything?
+    excl = ~rule_tgt
+    t, c = excl & th, excl & ~th
+    ex = st.diff_in_proportions(int(ph[t].sum()), int(t.sum()), int(ph[c].sum()), int(c.sum()))
+    results["excluded_by_rule"] = {
+        "share": float(excl.mean()), "irr": ex["diff"], "irr_ci": [ex["ci_low"], ex["ci_high"]],
+        "value_per_100k_if_sent": 100_000 * excl.mean() * (rev * ex["diff"] - cost),
+    }
+
+    # 6c. Sensitivity: value per extra sale (price vs margin) and promotion cost
+    irr_rule, irr_all = rule["irr_in_targeted"], hold_eval["send_all"]["irr_in_targeted"]
+    sens = []
+    for value in [10.0, 9.0, 8.0, 7.0, 6.0, 5.0]:
+        for c_ in [0.10, 0.15, 0.20, 0.25]:
+            sens.append({"value_per_sale": value, "cost_per_send": c_,
+                         "rule_per_100k": 100_000 * rule["share_targeted"] * (value * irr_rule - c_),
+                         "send_all_per_100k": 100_000 * (value * irr_all - c_)})
+    results["sensitivity"] = {
+        "grid": sens,
+        "rule_break_even_value_per_sale": cost / irr_rule,
+        "rule_break_even_cost_per_send": rev * irr_rule,
+        "rule_irr_ci_low_break_even_value_per_sale": cost / rule["irr_in_targeted_ci"][0],
+    }
+
+    # 6d. Rollout sizing: customers needed in the targeted segment (90% promoted / 10% held out)
+    # to show the lift beats break-even (one-sided alpha 0.05, 80% power), if the holdout lift is the truth.
+    t, c = rule_tgt & th, rule_tgt & ~th
+    p_c, p_t = float(ph[c].mean()), float(ph[t].mean())
+    from scipy.stats import norm
+    se_needed = (irr_rule - break_even) / (norm.ppf(0.95) + norm.ppf(0.80))
+    n_total = (p_t * (1 - p_t) / 0.9 + p_c * (1 - p_c) / 0.1) / se_needed ** 2
+    results["rollout_sizing"] = {"assumed_irr": irr_rule, "control_rate": p_c, "treated_rate": p_t,
+                                 "holdout_share": 0.10, "customers_needed": int(np.ceil(n_total))}
+
+    # 6e. Segment lift with CIs on both splits, from metric-layer counts
+    rows = []
+    for split_name in ["training", "holdout"]:
+        cnt = layer.query(["customers", "promotion_customers", "promotion_purchases",
+                           "control_customers", "control_purchases"], ["v4", "v5"], f"split = '{split_name}'")
+        for _, r_ in cnt.iterrows():
+            d = st.diff_in_proportions(r_.promotion_purchases, r_.promotion_customers,
+                                       r_.control_purchases, r_.control_customers)
+            rows.append({"split": split_name, "v4": int(r_.v4), "v5": int(r_.v5), "customers": int(r_.customers),
+                         "irr": d["diff"], "irr_ci_low": d["ci_low"], "irr_ci_high": d["ci_high"],
+                         "net_value_per_send": rev * d["diff"] - cost})
+    pd.DataFrame(rows).to_csv(OUT / "segment_lift.csv", index=False)
     (OUT / "results.json").write_text(json.dumps(results, indent=2, default=float))
     return results
 

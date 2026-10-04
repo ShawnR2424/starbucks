@@ -70,38 +70,45 @@ def fig_blanket(r: dict) -> None:
 
 
 def fig_segments(r: dict) -> None:
-    seg = pd.read_csv(OUT / "segment_lift_training.csv")
+    seg = pd.read_csv(OUT / "segment_lift.csv")
     cells = {tuple(c) for c in r["targeting_rule_cells"]}
-    seg["targeted"] = [(a, b) in cells for a, b in zip(seg.v4, seg.v5)]
-    seg["label"] = [f"V4={a}, V5={b}" for a, b in zip(seg.v4, seg.v5)]
-    seg = seg.sort_values("incremental_response_rate", ascending=True).reset_index(drop=True)
+    tr = seg[seg.split == "training"].sort_values("irr").reset_index(drop=True)
+    ho = seg[seg.split == "holdout"].set_index(["v4", "v5"])
     be = r["economics"]["break_even_irr"] * 100
 
-    fig, ax = plt.subplots(figsize=(7.2, 4.2))
-    colors = [ACCENT if t else MUTED for t in seg.targeted]
-    ax.barh(seg.index, seg.incremental_response_rate * 100, height=0.62, color=colors, edgecolor=SURFACE, linewidth=2)
-    for i, row in seg.iterrows():
-        v = row.incremental_response_rate * 100
-        x = max(v, 0) + 0.06
-        ax.text(x, i, f"{v:.2f} pts · {row.customers/1000:.1f}k customers", va="center", fontsize=8.8,
-                color=INK if row.targeted else INK_2, bbox=dict(facecolor=SURFACE, edgecolor="none", pad=1.5))
+    fig, ax = plt.subplots(figsize=(8.4, 4.8))
+    for i, row in tr.iterrows():
+        targeted = (row.v4, row.v5) in cells
+        col = ACCENT if targeted else MUTED
+        h = ho.loc[(row.v4, row.v5)]
+        for off, src, filled in [(0.17, row, True), (-0.17, h, False)]:
+            y = i + off
+            ax.plot([src.irr_ci_low * 100, src.irr_ci_high * 100], [y, y], color=col, lw=2, solid_capstyle="round")
+            ax.plot(src.irr * 100, y, "o" if filled else "D", ms=8 if filled else 7,
+                    color=col, mfc=col if filled else SURFACE, mec=col if not filled else SURFACE, mew=2 if filled else 1.8)
+        ax.text(4.05, i, f"{row.customers/1000:.1f}k", va="center", ha="right", fontsize=8.8,
+                color=INK if targeted else INK_2)
+    ax.text(4.05, len(tr) - 0.35, "Customers\n(training)", ha="right", va="bottom", fontsize=8.5, color=INK_2)
     ax.axvline(be, color=THRESH, ls=(0, (4, 3)), lw=1.2)
-    ax.text(be + 0.04, -0.75, "Break-even 1.5 pts", color=INK_2, fontsize=9, va="bottom")
+    ax.text(be + 0.04, -0.85, "Break-even 1.5 pts", color=INK_2, fontsize=9, va="bottom")
     ax.axvline(0, color=INK_2, lw=0.8)
-    ax.set_yticks(seg.index)
-    ax.set_yticklabels(seg.label)
+    ax.set_yticks(tr.index)
+    ax.set_yticklabels([f"V4={a}, V5={b}" for a, b in zip(tr.v4, tr.v5)])
     ax.tick_params(axis="y", length=0)
-    ax.set_xlim(-0.4, 3.9)
-    ax.set_ylim(-0.9, len(seg) - 0.5)
-    ax.set_xlabel("Incremental purchase rate from the promotion (percentage points, training data)")
+    ax.set_xlim(-1.7, 4.1)
+    ax.set_ylim(-1.0, len(tr) - 0.4)
+    ax.set_xlabel("Incremental purchase rate from the promotion (percentage points, 95% CI)")
     ax.grid(axis="x", color=GRID, lw=0.8)
     ax.set_axisbelow(True)
-    from matplotlib.patches import Patch
-    ax.legend(handles=[Patch(color=ACCENT, label="Targeted"),
-                       Patch(color=MUTED, label="Not targeted")],
-              loc="lower right", bbox_to_anchor=(1.0, 0.08), frameon=False, fontsize=9)
-    _title(ax, "Two segments clear break-even; most customers barely respond",
-           "V4=2 with V5 in {1, 3} responds at ~2 pts; V4=1 shows no response")
+    from matplotlib.lines import Line2D
+    ax.legend(handles=[
+        Line2D([], [], color=ACCENT, lw=6, label="Targeted"),
+        Line2D([], [], color=MUTED, lw=6, label="Not targeted"),
+        Line2D([], [], color=INK_2, marker="o", ls="none", ms=7, label="Training (where the rule was found)"),
+        Line2D([], [], color=INK_2, marker="D", mfc=SURFACE, ls="none", ms=6, label="Holdout (replication)"),
+    ], loc="upper left", bbox_to_anchor=(0.0, 1.0), frameon=True, facecolor=SURFACE, edgecolor="none", framealpha=1, fontsize=8.5)
+    _title(ax, "Two segments clear break-even, and the pattern holds on new customers",
+           "V4=2 with V5 in {1, 3} responds at about 2 pts in both samples; V4=1 shows no response")
     fig.tight_layout()
     fig.savefig(FIG / "02_lift_by_segment.png", dpi=200)
     plt.close(fig)

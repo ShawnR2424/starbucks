@@ -24,7 +24,7 @@ def diff_in_proportions(x_t: int, n_t: int, x_c: int, n_c: int, alpha: float = 0
         "ci_low": diff - z_crit * se,
         "ci_high": diff + z_crit * se,
         "z": z,
-        "p_value": 2 * (1 - stats.norm.cdf(abs(z))),
+        "p_value": float(2 * stats.norm.sf(abs(z))),
     }
 
 
