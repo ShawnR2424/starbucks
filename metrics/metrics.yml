@@ -1,0 +1,99 @@
+# Metric layer: every metric in this project is defined here exactly once.
+# Analysis code asks the layer for metrics by name; it never re-derives them.
+# Structure mirrors a dbt semantic model (entity, measures, dimensions, metrics)
+# so it can be ported to dbt's semantic layer without changing definitions.
+
+version: 1
+
+model:
+  name: stg_customers
+  sql: models/stg_customers.sql
+  grain: one row per customer
+  primary_key: customer_id
+
+economics:
+  revenue_per_purchase: 10.00   # product price, USD
+  cost_per_promotion: 0.15      # cost to send one promotion, USD
+
+dimensions:
+  split:       {expr: split,       description: "training (exploration, modeling) or holdout (final evaluation only)"}
+  arm:         {expr: arm,         description: "promotion or control"}
+  v1:          {expr: v1,          description: "anonymized categorical, 0-3"}
+  v2_quartile: {expr: v2_quartile, description: "anonymized continuous V2, quartile within split"}
+  v3_quartile: {expr: v3_quartile, description: "anonymized continuous V3, quartile within split"}
+  v4:          {expr: v4,          description: "anonymized categorical, 1-2"}
+  v5:          {expr: v5,          description: "anonymized categorical, 1-4"}
+  v6:          {expr: v6,          description: "anonymized categorical, 1-4"}
+  v7:          {expr: v7,          description: "anonymized categorical, 1-2"}
+
+measures:
+  customers:           {agg: "count(*)"}
+  purchases:           {agg: "sum(purchased)"}
+  promotion_customers: {agg: "sum(case when arm = 'promotion' then 1 else 0 end)"}
+  control_customers:   {agg: "sum(case when arm = 'control' then 1 else 0 end)"}
+  promotion_purchases: {agg: "sum(case when arm = 'promotion' then purchased else 0 end)"}
+  control_purchases:   {agg: "sum(case when arm = 'control' then purchased else 0 end)"}
+
+metrics:
+  purchase_rate:
+    type: ratio
+    numerator: purchases
+    denominator: customers
+    description: Share of customers who bought the product.
+    why: Base rate. Not a decision metric on its own, because it mixes both arms.
+
+  promotion_purchase_rate:
+    type: ratio
+    numerator: promotion_purchases
+    denominator: promotion_customers
+    description: Purchase rate among customers who were sent the promotion.
+
+  control_purchase_rate:
+    type: ratio
+    numerator: control_purchases
+    denominator: control_customers
+    description: Purchase rate among customers who were not sent the promotion.
+    why: The counterfactual. What these customers would do anyway.
+
+  incremental_response_rate:
+    type: derived
+    expr: "promotion_purchase_rate - control_purchase_rate"
+    description: Extra purchase probability caused by sending the promotion (IRR).
+    why: >
+      Primary effect metric. Raw promotion purchase rate overstates impact
+      because some of those customers would have bought anyway.
+
+  break_even_irr:
+    type: derived
+    expr: "{cost_per_promotion} / {revenue_per_purchase}"
+    description: Minimum IRR at which a promotion pays for itself (1.5 points).
+    why: Turns "is the lift significant?" into "is the lift worth paying for?"
+
+  net_value_per_send:
+    type: derived
+    expr: "{revenue_per_purchase} * incremental_response_rate - {cost_per_promotion}"
+    description: Expected profit from sending one promotion, in USD.
+    why: >
+      Primary decision metric. Positive means each send earns more incremental
+      revenue than it costs. Equivalent to NIR divided by customers sent.
+
+  net_incremental_revenue_per_100k:
+    type: derived
+    expr: "100000 * net_value_per_send"
+    description: Expected profit from sending the promotion to 100,000 customers, in USD.
+    why: Same as net_value_per_send, scaled to a number a budget owner can reason about.
+
+  sample_ratio:
+    type: ratio
+    numerator: promotion_customers
+    denominator: customers
+    description: Share of customers assigned to the promotion arm.
+    why: Guardrail. Should be near 0.5. A large deviation means randomization or logging broke.
+
+# Data tests, in the spirit of dbt schema tests. Run before any analysis.
+tests:
+  - {name: customer_id_unique,     sql: "select count(*) - count(distinct customer_id) from stg_customers", expect: 0}
+  - {name: arm_not_null,           sql: "select count(*) from stg_customers where arm is null", expect: 0}
+  - {name: purchased_is_binary,    sql: "select count(*) from stg_customers where purchased not in (0, 1)", expect: 0}
+  - {name: no_null_features,       sql: "select count(*) from stg_customers where v1 is null or v2 is null or v3 is null or v4 is null or v5 is null or v6 is null or v7 is null", expect: 0}
+  - {name: splits_present,         sql: "select count(distinct split) from stg_customers", expect: 2}

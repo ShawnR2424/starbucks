@@ -1,0 +1,301 @@
+{
+  "economics": {
+    "revenue_per_purchase": 10.0,
+    "cost_per_promotion": 0.15,
+    "break_even_irr": 0.015
+  },
+  "data_tests": [
+    {
+      "test": "customer_id_unique",
+      "expected": 0,
+      "got": 0,
+      "passed": true
+    },
+    {
+      "test": "arm_not_null",
+      "expected": 0,
+      "got": 0,
+      "passed": true
+    },
+    {
+      "test": "purchased_is_binary",
+      "expected": 0,
+      "got": 0,
+      "passed": true
+    },
+    {
+      "test": "no_null_features",
+      "expected": 0,
+      "got": 0,
+      "passed": true
+    },
+    {
+      "test": "splits_present",
+      "expected": 2,
+      "got": 2,
+      "passed": true
+    }
+  ],
+  "rows": {
+    "training": 84534,
+    "holdout": 41650
+  },
+  "validity": {
+    "training": {
+      "srm": {
+        "n_treatment": 42364,
+        "n_control": 42170,
+        "observed_ratio": 0.5011474672912675,
+        "chi2": 0.4452173090117586,
+        "p_value": 0.5046149723893336
+      },
+      "smd": {
+        "v1": 0.010079015518000627,
+        "v4": -0.0028314125913192273,
+        "v5": -0.007103744786217776,
+        "v6": 0.002380794151923916,
+        "v7": -0.002230269352702328,
+        "v2": -0.0013047704073345476,
+        "v3": 0.014538400164674382
+      },
+      "max_abs_smd": 0.014538400164674382
+    },
+    "holdout": {
+      "srm": {
+        "n_treatment": 20748,
+        "n_control": 20902,
+        "observed_ratio": 0.49815126050420167,
+        "chi2": 0.5694117647058824,
+        "p_value": 0.4504927601248231
+      },
+      "smd": {
+        "v1": 0.01128026265798559,
+        "v4": 0.012550934069829834,
+        "v5": -0.008399467206142751,
+        "v6": -0.0070378373718215795,
+        "v7": 0.010352951229412877,
+        "v2": -0.0038250989695099596,
+        "v3": 0.008101289503570946
+      },
+      "max_abs_smd": 0.012550934069829834
+    }
+  },
+  "ab_test": {
+    "training": {
+      "p_treatment": 0.017019167217448776,
+      "p_control": 0.007564619397676073,
+      "diff": 0.009454547819772702,
+      "se": 0.0007569189294319118,
+      "ci_low": 0.00797101397886954,
+      "ci_high": 0.010938081660675864,
+      "z": 12.468449461599388,
+      "p_value": 0.0,
+      "counts": {
+        "promotion_customers": 42364,
+        "promotion_purchases": 721,
+        "control_customers": 42170,
+        "control_purchases": 319
+      },
+      "net_value_per_send": -0.05545452180227298,
+      "net_value_per_send_ci": [
+        -0.0702898602113046,
+        -0.04061918339324136
+      ],
+      "nir_per_100k": -5545.4521802272975,
+      "nir_per_100k_ci": [
+        -7028.986021130459,
+        -4061.918339324136
+      ],
+      "mde_80pct_power": 0.0016697979640095918
+    },
+    "holdout": {
+      "p_treatment": 0.016338924233661074,
+      "p_control": 0.0067457659554109655,
+      "diff": 0.009593158278250108,
+      "se": 0.0010465099573448771,
+      "ci_low": 0.0075420364523916,
+      "ci_high": 0.011644280104108616,
+      "z": 9.171494332667832,
+      "p_value": 0.0,
+      "counts": {
+        "promotion_customers": 20748,
+        "promotion_purchases": 339,
+        "control_customers": 20902,
+        "control_purchases": 141
+      },
+      "net_value_per_send": -0.054068417217498915,
+      "net_value_per_send_ci": [
+        -0.074579635476084,
+        -0.033557198958913834
+      ],
+      "nir_per_100k": -5406.841721749892,
+      "nir_per_100k_ci": [
+        -7457.9635476083995,
+        -3355.719895891383
+      ],
+      "mde_80pct_power": 0.0022473729328216035
+    }
+  },
+  "blanket_decision": "do_not_send_to_everyone",
+  "targeting_cv": {
+    "summary": {
+      "send_all": {
+        "mean_value_per_customer": -0.055454526995257415,
+        "fold_values": [
+          -0.055931718381430656,
+          -0.055931718381430656,
+          -0.055931718381430656,
+          -0.05356582183902048,
+          -0.055911657992974595
+        ],
+        "mean_share_targeted": 1.0
+      },
+      "segment_rule_v4_v5": {
+        "mean_value_per_customer": 0.020291203425052317,
+        "fold_values": [
+          0.021200070174026975,
+          0.008458259279767668,
+          0.02298259278142471,
+          0.019947918739577113,
+          0.028867176150465124
+        ],
+        "mean_share_targeted": 0.3962665060936871
+      },
+      "t_learner_logistic": {
+        "mean_value_per_customer": 0.020842592094369755,
+        "fold_values": [
+          0.01103615932441666,
+          0.011409139389018967,
+          0.026493539923692164,
+          0.02131661503178158,
+          0.033957506802939415
+        ],
+        "mean_share_targeted": 0.30761574769920197
+      },
+      "t_learner_gbm": {
+        "mean_value_per_customer": 0.01774887164377415,
+        "fold_values": [
+          0.013163808035922124,
+          0.009384104966345706,
+          0.027912737832971615,
+          0.01793952318872384,
+          0.02034418419490748
+        ],
+        "mean_share_targeted": 0.35496942232134826
+      }
+    },
+    "chosen_policy": "t_learner_logistic"
+  },
+  "targeting_rule_cells": [
+    [
+      2,
+      1
+    ],
+    [
+      2,
+      3
+    ]
+  ],
+  "holdout_evaluation": {
+    "send_all": {
+      "share_targeted": 1.0,
+      "value_per_customer": -0.054068417217498915,
+      "value_per_100k": -5406.841721749892,
+      "value_per_100k_ci": [
+        -7432.234044847291,
+        -3294.296169864609
+      ],
+      "vs_send_all_per_100k": 0.0,
+      "vs_send_all_per_100k_ci": [
+        0.0,
+        0.0
+      ],
+      "prob_value_positive": 0.0,
+      "irr_in_targeted": 0.009593158278250108,
+      "irr_in_targeted_ci": [
+        0.0075420364523916,
+        0.011644280104108616
+      ],
+      "exercise_nir": -1132.1999999999998
+    },
+    "send_none": {
+      "share_targeted": 0.0,
+      "value_per_customer": 0.0,
+      "value_per_100k": 0.0,
+      "value_per_100k_ci": [
+        0.0,
+        0.0
+      ],
+      "vs_send_all_per_100k": 5406.841721749892,
+      "vs_send_all_per_100k_ci": [
+        3294.296169864609,
+        7432.234044847291
+      ],
+      "prob_value_positive": 0.0
+    },
+    "segment_rule_v4_v5": {
+      "share_targeted": 0.3866266506602641,
+      "value_per_customer": 0.02117327589850218,
+      "value_per_100k": 2117.327589850218,
+      "value_per_100k_ci": [
+        603.3867828954076,
+        3743.3828555141545
+      ],
+      "vs_send_all_per_100k": 7524.16931160011,
+      "vs_send_all_per_100k_ci": [
+        6118.766356946805,
+        8802.184321295746
+      ],
+      "prob_value_positive": 0.998,
+      "irr_in_targeted": 0.020476413967413624,
+      "irr_in_targeted_ci": [
+        0.016441056435514273,
+        0.024511771499312975
+      ],
+      "exercise_nir": 424.6500000000001
+    },
+    "t_learner_logistic": {
+      "share_targeted": 0.3095798319327731,
+      "value_per_customer": 0.015734986252902837,
+      "value_per_100k": 1573.4986252902836,
+      "value_per_100k_ci": [
+        189.60200894468935,
+        3015.115359939377
+      ],
+      "vs_send_all_per_100k": 6980.340347040176,
+      "vs_send_all_per_100k_ci": [
+        5435.216780762004,
+        8507.69237820002
+      ],
+      "prob_value_positive": 0.9895,
+      "irr_in_targeted": 0.020082690999173283,
+      "irr_in_targeted_ci": [
+        0.015608200648954955,
+        0.02455718134939161
+      ],
+      "exercise_nir": 319.4000000000001
+    },
+    "t_learner_gbm": {
+      "share_targeted": 0.3619447779111645,
+      "value_per_customer": 0.021083872956617178,
+      "value_per_100k": 2108.387295661718,
+      "value_per_100k_ci": [
+        694.8138713886513,
+        3611.0474972907864
+      ],
+      "vs_send_all_per_100k": 7515.22901741161,
+      "vs_send_all_per_100k_ci": [
+        6108.365650932345,
+        8932.223511835646
+      ],
+      "prob_value_positive": 0.9985,
+      "irr_in_targeted": 0.020825162909738675,
+      "irr_in_targeted_ci": [
+        0.016686609736422928,
+        0.02496371608305442
+      ],
+      "exercise_nir": 428.0
+    }
+  },
+  "targeting_decision": "target"
+}

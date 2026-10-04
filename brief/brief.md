@@ -62,4 +62,5 @@ If a check fails materially, stop and investigate before interpreting effects.
 
 ## Changelog
 
-_No changes yet._
+1. **Holdout source (made before any holdout effect estimates).** `Test.csv` turned out to contain promotion and purchase labels, so the provided file is used as the holdout (41,650 rows) instead of an internal split of `training.csv`. Disclosure: initial data profiling printed overall purchase rates by arm for both files. No targeting choice was made with holdout data.
+2. **Tie-break between targeting policies (made after results).** This brief did not specify how to choose between policies with indistinguishable cross-validated value. Cross-validation selected the logistic T-learner by $55 per 100k, well within fold noise, and that policy is the one scored against the section 6 decision rule. The memo recommends the simpler V4/V5 rule as the operational version, for interpretability, and labels this as a post-hoc judgment call.
