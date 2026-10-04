@@ -1,0 +1,13 @@
+# Raw data is not redistributed (no stated license)
+data/*
+!data/README.md
+
+# Python / notebooks
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.venv/
+
+# Local warehouse files
+*.duckdb
+*.duckdb.wal
