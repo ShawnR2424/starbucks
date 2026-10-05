@@ -96,4 +96,7 @@ tests:
   - {name: arm_not_null,           sql: "select count(*) from stg_customers where arm is null", expect: 0}
   - {name: purchased_is_binary,    sql: "select count(*) from stg_customers where purchased not in (0, 1)", expect: 0}
   - {name: no_null_features,       sql: "select count(*) from stg_customers where v1 is null or v2 is null or v3 is null or v4 is null or v5 is null or v6 is null or v7 is null", expect: 0}
+  - {name: arm_accepted_values,    sql: "select count(*) from stg_customers where arm not in ('promotion', 'control')", expect: 0}
+  - {name: features_in_range,      sql: "select count(*) from stg_customers where v1 not between 0 and 3 or v4 not between 1 and 2 or v5 not between 1 and 4 or v6 not between 1 and 4 or v7 not between 1 and 2", expect: 0}
+  - {name: customer_in_one_split,  sql: "select count(*) from (select customer_id from stg_customers group by customer_id having count(distinct split) > 1)", expect: 0}
   - {name: splits_present,         sql: "select count(distinct split) from stg_customers", expect: 2}
